@@ -26,19 +26,9 @@ THE SOFTWARE.
 
 Artnet::Artnet() {}
 
-void Artnet::begin(byte mac[], byte ip[])
+void Artnet::begin(WiFiUDP *udp)
 {
-	#if !defined(ARDUINO_SAMD_ZERO) && !defined(ESP8266) && !defined(ESP32)
-		Ethernet.begin(mac,ip);
-	#endif
-
-	Udp.begin(ART_NET_PORT);
-	setDefault();
-}
-
-void Artnet::begin()
-{
-	Udp.begin(ART_NET_PORT);
+	Udp = udp;
 	setDefault();
 }
 
@@ -97,15 +87,14 @@ void Artnet::setBroadcast(byte bc[]) {
 	broadcast = bc;
 }
 
-uint16_t Artnet::read() {
+uint16_t Artnet::read(uint8_t *artnetPacket, uint16_t packetSize) {
 	IPAddress local_ip;
-	packetSize = Udp.parsePacket();
+	uint8_t *swin;
+	uint8_t *swout;
 
-	remoteIP = Udp.remoteIP();
+	remoteIP = Udp->remoteIP();
 	if (packetSize <= MAX_BUFFER_ARTNET && packetSize > 0)
 	{
-		Udp.read(artnetPacket, MAX_BUFFER_ARTNET);
-
 		// Check that packetID is "Art-Net" else ignore
 		for (byte i = 0 ; i < 8 ; i++)
 		{
@@ -116,13 +105,17 @@ uint16_t Artnet::read() {
 		opcode = artnetPacket[8] | artnetPacket[9] << 8;
 
 		switch (opcode) {
+
 			case ART_DMX:
 				sequence = artnetPacket[12];
 				incomingUniverse = artnetPacket[14] | artnetPacket[15] << 8;
 				dmxDataLength = artnetPacket[17] | artnetPacket[16] << 8;
 
-				if (artDmxCallback) (*artDmxCallback)(incomingUniverse, dmxDataLength, sequence, artnetPacket + ART_DMX_START, remoteIP);
+				if (artDmxCallback)
+					(*artDmxCallback)(incomingUniverse, dmxDataLength, sequence, artnetPacket + ART_DMX_START, remoteIP);
+
 				return ART_DMX;
+
 			case ART_POLL:
 				//fill the reply struct, and then send it to the network's broadcast address
 				Serial.print("POLL from ");
@@ -146,14 +139,16 @@ uint16_t Artnet::read() {
 				ArtPollReply.bindip[2] = node_ip_address[2];
 				ArtPollReply.bindip[3] = node_ip_address[3];
 
-				Udp.beginPacket(broadcast, ART_NET_PORT);//send the packet to the broadcast address
-					Udp.write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
-				Udp.endPacket();
+				Udp->beginPacket(broadcast, ART_NET_PORT);//send the packet to the broadcast address
+					Udp->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
+				Udp->endPacket();
 
 				return ART_POLL;
+
 			case ART_SYNC:
 				if (artSyncCallback) (*artSyncCallback)(remoteIP);
 				return ART_SYNC;
+
 			case ART_ADDR:
 				Serial.print("ADRESSE size = ");
 				Serial.print(packetSize);
@@ -166,8 +161,8 @@ uint16_t Artnet::read() {
 				if (artnetPacket[104] & 0x80)
 					ArtPollReply.sub = artnetPacket[104] & 0x0F;
 
-				uint8_t *swin  = artnetPacket + 96;
-				uint8_t *swout = artnetPacket + 100;
+				swin  = artnetPacket + 96;
+				swout = artnetPacket + 100;
 
 				for(uint8_t i = 0; i < 4; i++) {
 					if (swin[i] & 0x80)
@@ -182,14 +177,15 @@ uint16_t Artnet::read() {
 				if (artnetPacket[32])
 					memcpy(ArtPollReply.longname, artnetPacket + 32, 64);
 
-				Udp.beginPacket(broadcast, ART_NET_PORT); //send the packet to the broadcast address
-					Udp.write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
-				Udp.endPacket();
+				Udp->beginPacket(broadcast, ART_NET_PORT); //send the packet to the broadcast address
+					Udp->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
+				Udp->endPacket();
 
 				return ART_ADDR;
-			case default:
+
+			default :
 				Serial.printf("opcode unknow 0x%x\n", opcode);
-				return 0
+				return 0;
 		}
 	}
 	else

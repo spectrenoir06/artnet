@@ -98,12 +98,12 @@ class Artnet
 public:
 	Artnet();
 
-	void begin(byte mac[], byte ip[]);
-	void begin();
+	void begin(WiFiUDP *udp);
 	void setBroadcast(byte bc[]);
-	uint16_t read();
+	uint16_t read(uint8_t *artnetPacket, uint16_t packetSize);
 	void printPacketHeader();
 	void printPacketContent();
+	void setDefault();
 
 	// Return a pointer to the start of the DMX data
 	inline uint8_t* getDmxFrame(void)
@@ -150,7 +150,7 @@ private:
 	uint8_t  node_ip_address[4];
 	uint8_t  id[8];
 	#if defined(ARDUINO_SAMD_ZERO) || defined(ESP8266) || defined(ESP32)
-	WiFiUDP Udp;
+	WiFiUDP *Udp;
 	#else
 	EthernetUDP Udp;
 	#endif
