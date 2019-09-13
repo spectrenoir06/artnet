@@ -1,38 +1,14 @@
-/*The MIT License (MIT)
+#include <Artnet_old.h>
 
-Copyright (c) 2014 Nathanaël Lécaudé
-https://github.com/natcl/Artnet, http://forum.pjrc.com/threads/24688-Artnet-to-OctoWS2811
+Artnet_old::Artnet_old() {}
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
-
-#include <Artnet.h>
-
-Artnet::Artnet() {}
-
-void Artnet::begin(WiFiUDP *udp)
+void Artnet_old::begin(WiFiUDP *udp)
 {
 	Udp = udp;
 	setDefault();
 }
 
-void Artnet::setDefault() {
+void Artnet_old::setDefault() {
 	ArtPollReply.subH = 0; // net
 	ArtPollReply.sub  = 0; // sub
 
@@ -82,12 +58,12 @@ void Artnet::setDefault() {
 	sprintf((char *)ArtPollReply.nodereport, "%i DMX output universes active.", ArtPollReply.numbports);
 }
 
-void Artnet::setBroadcast(byte bc[]) {
+void Artnet_old::setBroadcast(byte bc[]) {
 	//sets the broadcast address
 	broadcast = bc;
 }
 
-uint16_t Artnet::read(uint8_t *artnetPacket, uint16_t packetSize) {
+uint16_t Artnet_old::read(uint8_t *artnetPacket, uint16_t packetSize) {
 	IPAddress local_ip;
 	uint8_t *swin;
 	uint8_t *swout;
@@ -96,11 +72,11 @@ uint16_t Artnet::read(uint8_t *artnetPacket, uint16_t packetSize) {
 	if (packetSize <= MAX_BUFFER_ARTNET && packetSize > 0)
 	{
 		// Check that packetID is "Art-Net" else ignore
-		for (byte i = 0 ; i < 8 ; i++)
-		{
-			if (artnetPacket[i] != ART_NET_ID[i])
-			return 0;
-		}
+		// for (byte i = 0 ; i < 8 ; i++)
+		// {
+		// 	if (artnetPacket[i] != ART_NET_ID[i])
+		// 	return 0;
+		// }
 
 		opcode = artnetPacket[8] | artnetPacket[9] << 8;
 
@@ -118,7 +94,7 @@ uint16_t Artnet::read(uint8_t *artnetPacket, uint16_t packetSize) {
 
 			case ART_POLL:
 				//fill the reply struct, and then send it to the network's broadcast address
-				Serial.print("POLL from ");
+				Serial.print("Art-Net POLL from ");
 				Serial.print(remoteIP);
 				Serial.print(" broadcast addr: ");
 				Serial.println(broadcast);
@@ -139,7 +115,7 @@ uint16_t Artnet::read(uint8_t *artnetPacket, uint16_t packetSize) {
 				ArtPollReply.bindip[2] = node_ip_address[2];
 				ArtPollReply.bindip[3] = node_ip_address[3];
 
-				Udp->beginPacket(broadcast, ART_NET_PORT);//send the packet to the broadcast address
+				Udp->beginPacket(remoteIP, ART_NET_PORT);//send the packet to the broadcast address
 					Udp->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
 				Udp->endPacket();
 
@@ -150,10 +126,7 @@ uint16_t Artnet::read(uint8_t *artnetPacket, uint16_t packetSize) {
 				return ART_SYNC;
 
 			case ART_ADDR:
-				Serial.print("ADRESSE size = ");
-				Serial.print(packetSize);
-				Serial.print("\topcode = ");
-				Serial.println(opcode, HEX);
+				Serial.print("Art-Net ADRESS");
 
 				if (artnetPacket[12] & 0x80)
 					ArtPollReply.subH = artnetPacket[12] & 0x7F;
@@ -192,7 +165,7 @@ uint16_t Artnet::read(uint8_t *artnetPacket, uint16_t packetSize) {
 		return 0;
 }
 
-void Artnet::printPacketHeader()
+void Artnet_old::printPacketHeader()
 {
 	Serial.print("packet size = ");
 	Serial.print(packetSize);
@@ -206,7 +179,7 @@ void Artnet::printPacketHeader()
 	Serial.println(sequence);
 }
 
-void Artnet::printPacketContent()
+void Artnet_old::printPacketContent()
 {
 	for (uint16_t i = ART_DMX_START ; i < dmxDataLength ; i++){
 		Serial.print(artnetPacket[i], DEC);

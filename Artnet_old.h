@@ -93,10 +93,10 @@ struct artnet_reply_s {
 	uint8_t  filler[26];
 } __attribute__((packed));
 
-class Artnet
+class Artnet_old
 {
 public:
-	Artnet();
+	Artnet_old();
 
 	void begin(WiFiUDP *udp);
 	void setBroadcast(byte bc[]);
