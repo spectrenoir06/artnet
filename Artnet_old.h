@@ -102,41 +102,8 @@ public:
 	void begin(WiFiUDP *udp);
 	void begin();
 	void setBroadcast(byte bc[]);
-	uint16_t read(AsyncUDPPacket packet);
-	void printPacketHeader();
-	void printPacketContent();
+	uint16_t read(AsyncUDPPacket *packet);
 	void setDefault();
-
-	// Return a pointer to the start of the DMX data
-	inline uint8_t* getDmxFrame(void)
-	{
-		return artnetPacket + ART_DMX_START;
-	}
-
-	inline uint16_t getOpcode(void)
-	{
-		return opcode;
-	}
-
-	inline uint8_t getSequence(void)
-	{
-		return sequence;
-	}
-
-	inline uint16_t getUniverse(void)
-	{
-		return incomingUniverse;
-	}
-
-	inline uint16_t getLength(void)
-	{
-		return dmxDataLength;
-	}
-
-	inline IPAddress getRemoteIP(void)
-	{
-		return remoteIP;
-	}
 
 	inline void setArtDmxCallback(void (*fptr)(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data, IPAddress remoteIP))
 	{
@@ -152,24 +119,15 @@ private:
 	uint8_t  node_ip_address[4];
 	uint8_t  id[8];
 	#if defined(ARDUINO_SAMD_ZERO) || defined(ESP8266) || defined(ESP32)
-	WiFiUDP *Udp;
+		WiFiUDP *Udp;
 	#else
-	EthernetUDP Udp;
+		EthernetUDP Udp;
 	#endif
 	struct artnet_reply_s ArtPollReply;
 
-
-	uint8_t artnetPacket[MAX_BUFFER_ARTNET];
-	uint16_t packetSize;
 	IPAddress broadcast;
-	uint16_t opcode;
-	uint8_t sequence;
-	uint16_t incomingUniverse;
-	uint16_t dmxDataLength;
-	IPAddress remoteIP;
 	void (*artDmxCallback)(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data, IPAddress remoteIP);
 	void (*artSyncCallback)(IPAddress remoteIP);
-
 };
 
 #endif
