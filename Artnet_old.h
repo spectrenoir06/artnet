@@ -28,17 +28,18 @@ THE SOFTWARE.
 #include <Arduino.h>
 
 #if defined(ARDUINO_SAMD_ZERO)
-#include <WiFi101.h>
-#include <WiFiUdp.h>
+	#include <WiFi101.h>
+	#include <WiFiUdp.h>
 #elif defined(ESP8266)
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
+	#include <ESP8266WiFi.h>
+	#include <WiFiUdp.h>
 #elif defined(ESP32)
-#include <WiFi.h>
-#include <WiFiUdp.h>
+	#include <WiFi.h>
+	// #include <WiFiUdp.h>
+	#include <AsyncUDP.h>
 #else
-#include <Ethernet.h>
-#include <EthernetUdp.h>
+	#include <Ethernet.h>
+	#include <EthernetUdp.h>
 #endif
 
 // UDP specific
@@ -99,8 +100,9 @@ public:
 	Artnet_old();
 
 	void begin(WiFiUDP *udp);
+	void begin();
 	void setBroadcast(byte bc[]);
-	uint16_t read(uint8_t *artnetPacket, uint16_t packetSize);
+	uint16_t read(AsyncUDPPacket packet);
 	void printPacketHeader();
 	void printPacketContent();
 	void setDefault();

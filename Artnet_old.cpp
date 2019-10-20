@@ -8,6 +8,11 @@ void Artnet_old::begin(WiFiUDP *udp)
 	setDefault();
 }
 
+void Artnet_old::begin()
+{
+	setDefault();
+}
+
 void Artnet_old::setDefault() {
 	ArtPollReply.subH = 0; // net
 	ArtPollReply.sub  = 0; // sub
@@ -63,12 +68,12 @@ void Artnet_old::setBroadcast(byte bc[]) {
 	broadcast = bc;
 }
 
-uint16_t Artnet_old::read(uint8_t *artnetPacket, uint16_t packetSize) {
+uint16_t Artnet_old::read(AsyncUDPPacket packet) {
 	IPAddress local_ip;
 	uint8_t *swin;
 	uint8_t *swout;
 
-	remoteIP = Udp->remoteIP();
+	// remoteIP = Udp->remoteIP();
 	if (packetSize <= MAX_BUFFER_ARTNET && packetSize > 0)
 	{
 		// Check that packetID is "Art-Net" else ignore
@@ -115,9 +120,9 @@ uint16_t Artnet_old::read(uint8_t *artnetPacket, uint16_t packetSize) {
 				ArtPollReply.bindip[2] = node_ip_address[2];
 				ArtPollReply.bindip[3] = node_ip_address[3];
 
-				Udp->beginPacket(remoteIP, ART_NET_PORT);//send the packet to the broadcast address
-					Udp->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
-				Udp->endPacket();
+				// Udp->beginPacket(remoteIP, ART_NET_PORT);//send the packet to the broadcast address
+				// 	Udp->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
+				// Udp->endPacket();
 
 				return ART_POLL;
 
@@ -150,9 +155,7 @@ uint16_t Artnet_old::read(uint8_t *artnetPacket, uint16_t packetSize) {
 				if (artnetPacket[32])
 					memcpy(ArtPollReply.longname, artnetPacket + 32, 64);
 
-				Udp->beginPacket(broadcast, ART_NET_PORT); //send the packet to the broadcast address
-					Udp->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
-				Udp->endPacket();
+				packet.write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
 
 				return ART_ADDR;
 
