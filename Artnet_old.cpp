@@ -20,6 +20,14 @@ void Artnet_old::setDefault() {
 	}
 
 	sprintf((char *)id, "Art-Net");
+
+	IPAddress local_ip = WiFi.localIP();
+
+	node_ip_address[0] = local_ip[0];
+	node_ip_address[1] = local_ip[1];
+	node_ip_address[2] = local_ip[2];
+	node_ip_address[3] = local_ip[3];
+
 	memcpy(ArtPollReply.id, id, sizeof(ArtPollReply.id));
 	memcpy(ArtPollReply.ip, node_ip_address, sizeof(ArtPollReply.ip));
 
@@ -63,7 +71,6 @@ void Artnet_old::setBroadcast(byte bc[]) {
 }
 
 uint16_t Artnet_old::read(AsyncUDPPacket *packet) {
-	IPAddress local_ip;
 	uint8_t *swin;
 	uint8_t *swout;
 
@@ -100,25 +107,14 @@ uint16_t Artnet_old::read(AsyncUDPPacket *packet) {
 			case ART_POLL:
 				//fill the reply struct, and then send it to the network's broadcast address
 				Serial.print("Art-Net POLL from ");
-				Serial.print(packet->remoteIP());
-				Serial.print(" broadcast addr: ");
-				Serial.println(broadcast);
+				Serial.println(packet->remoteIP());
+				// Serial.print(" broadcast addr: ");
+				// Serial.println(broadcast);
 
-				#if !defined(ARDUINO_SAMD_ZERO) && !defined(ESP8266) && !defined(ESP32)
-					local_ip = Ethernet.localIP();
-				#else
-					local_ip = WiFi.localIP();
-				#endif
-
-				node_ip_address[0] = local_ip[0];
-				node_ip_address[1] = local_ip[1];
-				node_ip_address[2] = local_ip[2];
-				node_ip_address[3] = local_ip[3];
-
-				ArtPollReply.bindip[0] = node_ip_address[0];
-				ArtPollReply.bindip[1] = node_ip_address[1];
-				ArtPollReply.bindip[2] = node_ip_address[2];
-				ArtPollReply.bindip[3] = node_ip_address[3];
+				ArtPollReply.bindip[0] = packet->remoteIP()[0];
+				ArtPollReply.bindip[1] = packet->remoteIP()[1];
+				ArtPollReply.bindip[2] = packet->remoteIP()[2];
+				ArtPollReply.bindip[3] = packet->remoteIP()[3];
 
 				packet->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
 
