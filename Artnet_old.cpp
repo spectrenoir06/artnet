@@ -70,7 +70,7 @@ void Artnet_old::setBroadcast(byte bc[]) {
 	broadcast = bc;
 }
 
-uint16_t Artnet_old::read(AsyncUDPPacket *packet) {
+uint16_t Artnet_old::read(AsyncUDP_bigPacket *packet) {
 	uint8_t *swin;
 	uint8_t *swout;
 

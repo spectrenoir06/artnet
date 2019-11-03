@@ -36,7 +36,7 @@ THE SOFTWARE.
 #elif defined(ESP32)
 	#include <WiFi.h>
 	// #include <WiFiUdp.h>
-	#include <AsyncUDP.h>
+	#include <AsyncUDP_big.h>
 #else
 	#include <Ethernet.h>
 	#include <EthernetUdp.h>
@@ -102,7 +102,7 @@ public:
 	void begin(WiFiUDP *udp);
 	void begin();
 	void setBroadcast(byte bc[]);
-	uint16_t read(AsyncUDPPacket *packet);
+	uint16_t read(AsyncUDP_bigPacket *packet);
 	void setDefault();
 
 	inline void setArtDmxCallback(void (*fptr)(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data, IPAddress remoteIP))
