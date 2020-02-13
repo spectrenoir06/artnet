@@ -1,13 +1,13 @@
-#include <Artnet_old.h>
+#include <Artnet.h>
 
-Artnet_old::Artnet_old() {}
+Artnet::Artnet() {}
 
-void Artnet_old::begin()
+void Artnet::begin()
 {
 	setDefault();
 }
 
-void Artnet_old::setDefault() {
+void Artnet::setDefault() {
 	ArtPollReply.subH = 0; // net
 	ArtPollReply.sub  = 0; // sub
 
@@ -34,8 +34,9 @@ void Artnet_old::setDefault() {
 	ArtPollReply.opCode = ART_POLL_REPLY;
 	ArtPollReply.port =  ART_NET_PORT;
 
+
 	memset(ArtPollReply.goodinput,  0x08, 4);
-	memset(ArtPollReply.goodoutput,  0x80, 4);
+	ArtPollReply.goodoutput[0] = 0x80; //memset(ArtPollReply.goodoutput[0],  0x80, 4);
 	memset(ArtPollReply.porttypes,  0xc0, 4);
 
 	uint8_t shortname [18];
@@ -59,18 +60,28 @@ void Artnet_old::setDefault() {
 	ArtPollReply.style      = 0;
 
 	ArtPollReply.numbportsH = 0;
-	ArtPollReply.numbports  = 4;
-	ArtPollReply.status2    = 0x08;
+	ArtPollReply.numbports  = 1;
+	ArtPollReply.status2    = 0x0E;
 
 	sprintf((char *)ArtPollReply.nodereport, "%i DMX output universes active.", ArtPollReply.numbports);
 }
 
-void Artnet_old::setBroadcast(byte bc[]) {
+void Artnet::setBroadcast(byte bc[]) {
 	//sets the broadcast address
 	broadcast = bc;
 }
 
-uint16_t Artnet_old::read(AsyncUDP_bigPacket *packet) {
+void Artnet::setIp(IPAddress ip) {
+	node_ip_address[0] = ip[0];
+	node_ip_address[1] = ip[1];
+	node_ip_address[2] = ip[2];
+	node_ip_address[3] = ip[3];
+
+	memcpy(ArtPollReply.id, id, sizeof(ArtPollReply.id));
+	memcpy(ArtPollReply.ip, node_ip_address, sizeof(ArtPollReply.ip));
+}
+
+uint16_t Artnet::read(AsyncUDP_bigPacket *packet) {
 	uint8_t *swin;
 	uint8_t *swout;
 
@@ -116,9 +127,13 @@ uint16_t Artnet_old::read(AsyncUDP_bigPacket *packet) {
 				ArtPollReply.bindip[2] = packet->remoteIP()[2];
 				ArtPollReply.bindip[3] = packet->remoteIP()[3];
 
-				packet->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
-
+				for (int i=1; i<9;i++){
+					ArtPollReply.bindindex = i;
+					ArtPollReply.sub = i-1;
+					packet->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
+				}
 				return ART_POLL;
+
 
 			case ART_SYNC:
 				if (artSyncCallback) (*artSyncCallback)(packet->remoteIP());
