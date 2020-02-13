@@ -19,17 +19,10 @@ void Artnet::setDefault() {
 		ArtPollReply.swin[i] = swin[i];
 	}
 
+	setIp(WiFi.localIP());
+
 	sprintf((char *)id, "Art-Net");
-
-	IPAddress local_ip = WiFi.localIP();
-
-	node_ip_address[0] = local_ip[0];
-	node_ip_address[1] = local_ip[1];
-	node_ip_address[2] = local_ip[2];
-	node_ip_address[3] = local_ip[3];
-
 	memcpy(ArtPollReply.id, id, sizeof(ArtPollReply.id));
-	memcpy(ArtPollReply.ip, node_ip_address, sizeof(ArtPollReply.ip));
 
 	ArtPollReply.opCode = ART_POLL_REPLY;
 	ArtPollReply.port =  ART_NET_PORT;
@@ -77,7 +70,6 @@ void Artnet::setIp(IPAddress ip) {
 	node_ip_address[2] = ip[2];
 	node_ip_address[3] = ip[3];
 
-	memcpy(ArtPollReply.id, id, sizeof(ArtPollReply.id));
 	memcpy(ArtPollReply.ip, node_ip_address, sizeof(ArtPollReply.ip));
 }
 
