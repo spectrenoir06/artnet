@@ -1,27 +1,3 @@
-/*The MIT License (MIT)
-
-Copyright (c) 2014 Nathanaël Lécaudé
-https://github.com/natcl/Artnet, http://forum.pjrc.com/threads/24688-Artnet-to-OctoWS2811
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
-
 #ifndef ARTNET_H
 #define ARTNET_H
 
@@ -35,7 +11,6 @@ THE SOFTWARE.
 	#include <WiFiUdp.h>
 #elif defined(ESP32)
 	#include <WiFi.h>
-	// #include <WiFiUdp.h>
 	#include <AsyncUDP_big.h>
 #else
 	#include <Ethernet.h>
@@ -96,39 +71,41 @@ struct artnet_reply_s {
 
 class Artnet
 {
-public:
-	Artnet();
+	public:
+		Artnet();
 
-	void begin(WiFiUDP *udp);
-	void begin();
-	void setBroadcast(byte bc[]);
-	uint16_t read(AsyncUDP_bigPacket *packet);
-	void setDefault();
-	void setIp(IPAddress ip);
+		void begin(WiFiUDP *udp);
+		void begin();
+		void begin(uint8_t nodes, uint8_t numbports);
+		void setBroadcast(byte bc[]);
+		uint16_t read(AsyncUDP_bigPacket *packet);
+		void setDefault(uint8_t numbports);
+		void setIp(IPAddress ip);
 
-	inline void setArtDmxCallback(void (*fptr)(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data, IPAddress remoteIP))
-	{
-		artDmxCallback = fptr;
-	}
+		inline void setArtDmxCallback(void (*fptr)(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data, IPAddress remoteIP))
+		{
+			artDmxCallback = fptr;
+		}
 
-	inline void setArtSyncCallback(void (*fptr)(IPAddress remoteIP))
-	{
-		artSyncCallback = fptr;
-	}
+		inline void setArtSyncCallback(void (*fptr)(IPAddress remoteIP))
+		{
+			artSyncCallback = fptr;
+		}
 
-private:
-	uint8_t  node_ip_address[4];
-	uint8_t  id[8];
-	#if defined(ARDUINO_SAMD_ZERO) || defined(ESP8266) || defined(ESP32)
-		WiFiUDP *Udp;
-	#else
-		EthernetUDP Udp;
-	#endif
-	struct artnet_reply_s ArtPollReply;
+	private:
+		uint8_t  node_ip_address[4];
+		uint8_t  id[8];
+		uint8_t nodes_nb;
+		#if defined(ARDUINO_SAMD_ZERO) || defined(ESP8266) || defined(ESP32)
+			WiFiUDP *Udp;
+		#else
+			EthernetUDP Udp;
+		#endif
+		struct artnet_reply_s ArtPollReply;
 
-	IPAddress broadcast;
-	void (*artDmxCallback)(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data, IPAddress remoteIP);
-	void (*artSyncCallback)(IPAddress remoteIP);
+		IPAddress broadcast;
+		void (*artDmxCallback)(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data, IPAddress remoteIP);
+		void (*artSyncCallback)(IPAddress remoteIP);
 };
 
 #endif

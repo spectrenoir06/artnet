@@ -4,10 +4,17 @@ Artnet::Artnet() {}
 
 void Artnet::begin()
 {
-	setDefault();
+	nodes_nb = 1;
+	setDefault(1);
 }
 
-void Artnet::setDefault() {
+void Artnet::begin(uint8_t nodes, uint8_t numbports)
+{
+	nodes_nb = nodes;
+	setDefault(numbports);
+}
+
+void Artnet::setDefault(uint8_t numbports) {
 	ArtPollReply.subH = 0; // net
 	ArtPollReply.sub  = 0; // sub
 
@@ -34,6 +41,8 @@ void Artnet::setDefault() {
 
 	uint8_t shortname [18];
 	uint8_t longname [64];
+	bzero(shortname, sizeof(shortname));
+	bzero(longname, sizeof(longname));
 	sprintf((char *)shortname, "ESP32 Artnet");
 	sprintf((char *)longname, "ESP32 - Art-Net");
 	memcpy(ArtPollReply.shortname, shortname, sizeof(shortname));
@@ -53,7 +62,7 @@ void Artnet::setDefault() {
 	ArtPollReply.style      = 0;
 
 	ArtPollReply.numbportsH = 0;
-	ArtPollReply.numbports  = 1;
+	ArtPollReply.numbports  = numbports;
 	ArtPollReply.status2    = 0x0E;
 
 	sprintf((char *)ArtPollReply.nodereport, "%i DMX output universes active.", ArtPollReply.numbports);
@@ -119,9 +128,9 @@ uint16_t Artnet::read(AsyncUDP_bigPacket *packet) {
 				ArtPollReply.bindip[2] = packet->remoteIP()[2];
 				ArtPollReply.bindip[3] = packet->remoteIP()[3];
 
-				for (int i=1; i<9;i++){
-					ArtPollReply.bindindex = i;
-					ArtPollReply.sub = i-1;
+				for (int i=0; i<nodes_nb;i++){
+					ArtPollReply.bindindex = i+1;
+					ArtPollReply.sub = i*ArtPollReply.numbports;
 					packet->write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
 				}
 				return ART_POLL;
